@@ -29,10 +29,11 @@ class LocalHttpServerService : Service() {
         const val NOTIFICATION_ID = 1
         const val ACTION_START = "eu.kanade.tachiyomi.ACTION_START_SERVER"
         const val ACTION_STOP = "eu.kanade.tachiyomi.ACTION_STOP_SERVER"
-        
-        private val readyLatch = CountDownLatch(1)
+
+        @Volatile
+        private var readyLatch = CountDownLatch(1)
         private var instance: LocalHttpServerService? = null
-        
+
         fun stop() {
             try {
                 val intent =
@@ -44,14 +45,14 @@ class LocalHttpServerService : Service() {
                 println(e.stackTrace)
             }
         }
-        
+
         fun awaitReady(timeoutMs: Long = 5000): Boolean {
             return readyLatch.await(timeoutMs, TimeUnit.MILLISECONDS)
         }
-        
-        fun isRunning(): Boolean = instance?.server?.isAlive == true
 
+        fun isRunning(): Boolean = instance?.server?.isAlive == true
     }
+
     private val prefserver: LocalHttpServerHolder by injectLazy()
     private var port = prefserver.port().get()
     var server: LocalHttpServer? = null
@@ -119,9 +120,6 @@ class LocalHttpServerService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    /**
-     * Creates the notification channel (required for Android Oreo or higher).
-     */
     @SuppressLint("ObsoleteSdkInt")
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

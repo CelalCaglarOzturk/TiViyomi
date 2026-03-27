@@ -19,6 +19,8 @@ import tachiyomi.i18n.MR
 import tachiyomi.i18n.ank.AMR
 import uy.kohesive.injekt.injectLazy
 import java.io.IOException
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 class LocalHttpServerService : Service() {
 
@@ -27,6 +29,10 @@ class LocalHttpServerService : Service() {
         const val NOTIFICATION_ID = 1
         const val ACTION_START = "eu.kanade.tachiyomi.ACTION_START_SERVER"
         const val ACTION_STOP = "eu.kanade.tachiyomi.ACTION_STOP_SERVER"
+        
+        private val readyLatch = CountDownLatch(1)
+        private var instance: LocalHttpServerService? = null
+        
         fun stop() {
             try {
                 val intent =
@@ -38,6 +44,13 @@ class LocalHttpServerService : Service() {
                 println(e.stackTrace)
             }
         }
+        
+        fun awaitReady(timeoutMs: Long = 5000): Boolean {
+            return readyLatch.await(timeoutMs, TimeUnit.MILLISECONDS)
+        }
+        
+        fun isRunning(): Boolean = instance?.server?.isAlive == true
+
     }
     private val prefserver: LocalHttpServerHolder by injectLazy()
     private var port = prefserver.port().get()
@@ -45,6 +58,7 @@ class LocalHttpServerService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
 
         createNotificationChannel()
 
@@ -76,12 +90,13 @@ class LocalHttpServerService : Service() {
         }
 
         Thread {
-            server = LocalHttpServer(port, contentResolver)
             try {
+                server = LocalHttpServer(port, contentResolver)
                 server?.start()
                 logcat(LogPriority.DEBUG) { "Local HTTP server started at $port" }
+                readyLatch.countDown()
             } catch (e: IOException) {
-                logcat(LogPriority.ERROR) { "Error to start local HTTP server" }
+                logcat(LogPriority.ERROR) { "Error to start local HTTP server: ${e.message}" }
                 stopSelf()
             }
         }.start()
@@ -96,6 +111,8 @@ class LocalHttpServerService : Service() {
 
     override fun onDestroy() {
         server?.stop()
+        instance = null
+        readyLatch = CountDownLatch(1)
         logcat(LogPriority.DEBUG) { "Stopping local HTTP server" }
         super.onDestroy()
     }

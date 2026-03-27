@@ -117,6 +117,9 @@ class CastMediaBuilder(
     private fun getLocalServerUrl(contentUri: String): String {
         val context = activity.applicationContext
         context.startService(Intent(context, LocalHttpServerService::class.java))
+        if (!LocalHttpServerService.awaitReady(5000)) {
+            logcat(LogPriority.ERROR) { "Local HTTP server failed to start within timeout" }
+        }
         val ip = getLocalIpAddress()
         val encodedUri = URLEncoder.encode(contentUri, "UTF-8")
         return "http://$ip:$port/file?uri=$encodedUri"

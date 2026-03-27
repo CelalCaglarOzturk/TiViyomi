@@ -6,7 +6,7 @@
 
 # TiViyomi [App](#)
 
-### Full-featured player, based on Aniyomi.
+### Aniyomi for casting to TV, Full-featured player, based on Aniyomi.
 Discover and watch anime, cartoons, series, and more – easier than ever on your Android device.
 
 

@@ -46,16 +46,6 @@ class LocalHttpServerService : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        server = LocalHttpServer(port, contentResolver)
-        try {
-            server?.start()
-            logcat(LogPriority.DEBUG) { "Local HTTP server started at $port" }
-        } catch (e: IOException) {
-            logcat(LogPriority.ERROR) { "Error to start local HTTP server" }
-            stopSelf()
-            return
-        }
-
         createNotificationChannel()
 
         val stopIntent = Intent(this, LocalHttpServerService::class.java).apply {
@@ -84,6 +74,17 @@ class LocalHttpServerService : Service() {
         } else {
             startForeground(NOTIFICATION_ID, notification)
         }
+
+        Thread {
+            server = LocalHttpServer(port, contentResolver)
+            try {
+                server?.start()
+                logcat(LogPriority.DEBUG) { "Local HTTP server started at $port" }
+            } catch (e: IOException) {
+                logcat(LogPriority.ERROR) { "Error to start local HTTP server" }
+                stopSelf()
+            }
+        }.start()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

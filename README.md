@@ -1,7 +1,7 @@
 <div align="center">
 
 <a href="https://anikku-app.github.io">
-    <img src="https://i.ytimg.com/vi/SwXKJVAN36s/maxresdefault.jpg" alt="TiViyomi logo" title="TiViyomi logo" width="80"/>
+    <img src="https://i.ytimg.com/vi/SwXKJVAN36s/maxresdefault.jpg" alt="TiViyomi logo" title="TiViyomi logo" width="480"/>
 </a>
 
 # TiViyomi [App](#)
